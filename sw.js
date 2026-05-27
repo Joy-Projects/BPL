@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bpl-with-meaning-v1';
+const CACHE_NAME = 'bpl-world-class-v1';
 const FILES_TO_CACHE = [
   './',
   './index.html',

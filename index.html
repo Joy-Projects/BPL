@@ -215,6 +215,15 @@
       gap: 10px;
     }
 
+    .section-kicker {
+      color: var(--violet);
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin: 0 0 7px;
+    }
+
     .segment {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -655,10 +664,13 @@
     <section id="chargesSection" class="workspace">
       <div class="left-stack">
         <section class="card">
+          <div class="section-kicker">1. Choose trade type</div>
           <div class="segment">
             <button id="intradayBtn" class="active">Intraday</button>
             <button id="deliveryBtn">Delivery</button>
           </div>
+
+          <div class="section-kicker">2. Enter trade details</div>
 
           <div class="trade-row">
             <div>
@@ -682,6 +694,8 @@
             <label for="sameSellPrice" class="inline-check-label">Auto-fill Sell same as Buy</label>
           </div>
 
+          <div class="section-kicker">3. Plan target profit</div>
+
           <div class="target-grid">
             <div>
               <label for="targetProfit">Target Profit ₹</label>
@@ -700,7 +714,7 @@
             <button class="action-btn secondary" id="useTargetSellBtn">Use required sell price</button>
           </div>
 
-          <div class="hint" id="chargeNote">Actual P&L changes only with Sell Price. Target Profit shows required sell price.</div>
+          <div class="hint" id="chargeNote">Target shows required sell price. Enter Sell Price to see actual P&L.</div>
         </section>
 
         <section class="quote-card">
@@ -832,9 +846,7 @@
         </section>
       </div>
     </section>
-
-    <div class="footnote">BPL saves your latest entries on this device. Buy-side and sell-side charges are separated. Final broker values can differ slightly because of rounding, buffers, or broker-side order handling.</div>
-  </main>
+</main>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -945,8 +957,8 @@
 
     const tradingQuotes = [
       {
-        text: 'If you see a vision that your trade is in profit, do not trade that day.',
-        sub: 'Do not enter just because the mind is showing profit.'
+        text: 'If your mind already shows profit, do not trade that day.',
+        sub: 'Enter only when the setup confirms it.'
       },
       {
         text: 'Do not trust your decision until it gives repeated profits.',
@@ -1143,7 +1155,7 @@
       const targetSellPrice = findSellPriceForTarget(qty, buy, targetProfitAmount);
 
       if (buyValue <= 0) {
-        els.chargeNote.textContent = 'Actual P&L changes only with Sell Price. Target Profit shows required sell price.';
+        els.chargeNote.textContent = 'Target shows required sell price. Enter Sell Price to see actual P&L.';
       } else if (hasSell) {
         els.chargeNote.textContent = 'Buy + sell entered: actual P&L and combined charges are shown.';
       } else {
@@ -1267,7 +1279,7 @@
       let targetStatus = 'Enter values';
 
       if (baseQtyForTarget <= 0 || baseAvgForTarget <= 0 || targetAvg <= 0 || targetBuyPrice <= 0) {
-        targetStatus = 'Enter holding, buy row, and target avg';
+        targetStatus = 'Enter current holding and target average';
       } else if (Math.abs(targetAvg - baseAvgForTarget) < 0.000001) {
         qtyNeeded = 0;
         targetStatus = 'Already at target';
