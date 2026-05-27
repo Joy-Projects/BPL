@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#21183d" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>BPL</title>
+  <style>
+    :root {
+      --ink: #21183d;
+      --violet: #6d28d9;
+      --pink: #db2777;
+      --green: #079455;
+      --red: #c62828;
+      --muted: #667085;
+      --line: #e6e8ef;
+      --bg: #f7f5ff;
+      --card: #ffffff;
+      --soft: #f4efff;
+      --warning: #fff8df;
+      --warning-border: #f4c542;
+      --shadow: 0 10px 24px rgba(33, 24, 61, .08);
+      --radius: 18px;
+    }
+
+    body.dark {
+      --ink: #f8fafc;
+      --violet: #c084fc;
+      --pink: #f0abfc;
+      --green: #86efac;
+      --red: #fecaca;
+      --muted: #cbd5e1;
+      --line: #334155;
+      --bg: #020617;
+      --card: #0f172a;
+      --soft: #1e1b4b;
+      --warning: #422006;
+      --warning-border: #854d0e;
+      --shadow: 0 10px 28px rgba(0, 0, 0, .35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    .app {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+
+    .topbar {
+      background:
+        radial-gradient(circle at top right, rgba(245, 158, 11, .35), transparent 32%),
+        linear-gradient(135deg, #21183d, #6d28d9 58%, #db2777);
+      color: #fff;
+      border-radius: 22px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -.3px;
+      line-height: 1;
+    }
+
+    .top-results {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .top-card {
+      background: rgba(255,255,255,.13);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 15px;
+      padding: 9px 11px;
+      min-width: 0;
+    }
+
+    .top-card .label {
+      color: #fff;
+      opacity: .86;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .top-card .value {
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .top-card.main .value {
+      font-size: 22px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .small-btn {
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.25);
+      cursor: pointer;
+    }
+
+    .mode-switch {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 8px;
+      margin-bottom: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mode-option {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-weight: 900;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+      justify-content: center;
+    }
+
+    .mode-option input {
+      width: auto;
+      height: auto;
+      accent-color: var(--violet);
+    }
+
+    .mode-option.active {
+      background: var(--soft);
+      color: var(--violet);
+      border-color: #d8b4fe;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(440px, 1fr) minmax(460px, 1fr);
+      gap: 10px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+
+    .left-stack, .right-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .segment {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      margin-bottom: 10px;
+    }
+
+    .segment button,
+    .add-btn,
+    .toggle,
+    .remove-btn,
+    .action-btn {
+      border: 0;
+      border-radius: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .segment button {
+      background: var(--card);
+      border: 1px solid var(--line);
+      padding: 10px 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .segment button.active {
+      background: #21183d;
+      color: #fff;
+      border-color: #21183d;
+    }
+
+    body.dark .segment button.active {
+      background: #7c3aed;
+      border-color: #7c3aed;
+    }
+
+    .trade-row {
+      display: grid;
+      grid-template-columns: .75fr 1fr 1fr;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .target-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    label {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .field {
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .field span {
+      padding-left: 9px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    input {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      outline: 0;
+      padding: 0 8px;
+      font-size: 14px;
+      background: var(--card);
+      color: var(--ink);
+    }
+
+    input:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      height: auto;
+      accent-color: var(--violet);
+    }
+
+    .check-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      width: auto;
+      max-width: max-content;
+      user-select: none;
+    }
+
+    .inline-check-label {
+      display: inline;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .hint {
+      margin-top: 8px;
+      background: var(--warning);
+      border: 1px solid var(--warning-border);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: #7a5400;
+      line-height: 1.35;
+    }
+
+    body.dark .hint { color: #fde68a; }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px;
+      background: color-mix(in srgb, var(--card) 95%, var(--violet));
+      min-height: 63px;
+    }
+
+    .metric .m-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .metric .m-value {
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 900;
+      word-break: break-word;
+    }
+
+    .metric.wide {
+      grid-column: 1 / -1;
+    }
+
+    .breakup {
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 5px 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .row strong {
+      color: var(--ink);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .toggle {
+      width: 100%;
+      background: var(--soft);
+      color: var(--violet);
+      padding: 9px;
+      margin-top: 8px;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .action-btn,
+    .add-btn {
+      width: 100%;
+      background: #21183d;
+      color: #fff;
+      padding: 10px;
+    }
+
+    .secondary {
+      background: var(--soft);
+      color: var(--violet);
+    }
+
+    .avg-entry {
+      display: grid;
+      grid-template-columns: 1fr 1fr 38px;
+      gap: 7px;
+      align-items: end;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .avg-entry:first-of-type { border-top: 0; }
+
+    .remove-btn {
+      height: 40px;
+      background: #fee4e2;
+      color: #b42318;
+      font-size: 18px;
+    }
+
+    .hidden { display: none; }
+
+    .average-results {
+      display: grid;
+      gap: 10px;
+    }
+
+    .quote-card {
+      background:
+        radial-gradient(circle at top right, rgba(109, 40, 217, .12), transparent 42%),
+        var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      min-height: 186px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .quote-title {
+      color: var(--violet);
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .quote-text {
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .quote-sub {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .quote-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .quote-btn {
+      border: 0;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--violet);
+      font-weight: 900;
+      padding: 9px 13px;
+      cursor: pointer;
+    }
+
+    .footnote {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+      text-align: center;
+    }
+
+    @media (min-width: 900px) {
+      body {
+        overflow-y: auto;
+      }
+
+      .app {
+        min-height: 100vh;
+      }
+
+      .desktop-fit .card {
+        padding: 10px;
+      }
+
+      .desktop-fit .field {
+        height: 38px;
+      }
+
+      .desktop-fit .metric {
+        padding: 9px;
+        min-height: 58px;
+      }
+
+      .desktop-fit .row {
+        padding: 4px 0;
+      }
+
+      .desktop-fit .quote-card {
+        min-height: 180px;
+        padding: 16px;
+      }
+
+      .desktop-fit .quote-text {
+        font-size: 22px;
+      }
+    }
+
+    @media (max-width: 899px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .top-results {
+        grid-template-columns: 1fr;
+      }
+
+      .top-card .value,
+      .top-card.main .value {
+        font-size: 22px;
+      }
+
+      .top-actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app { padding: 8px; }
+      .trade-row {
+        grid-template-columns: .75fr 1fr 1fr;
+        gap: 5px;
+      }
+      .input-grid,
+      .target-grid,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+      .field { height: 41px; }
+      input { font-size: 14px; padding: 0 7px; }
+      .field span { padding-left: 7px; }
+      .mode-option { padding: 9px 7px; font-size: 13px; }
+      .avg-entry { grid-template-columns: 1fr 1fr 36px; gap: 5px; }
+      .remove-btn { height: 41px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app desktop-fit">
+    <section class="topbar">
+      <h1>BPL</h1>
+
+      <div class="top-results">
+        <div class="top-card main">
+          <div class="label" id="mainLabel">Amount required</div>
+          <div class="value" id="mainValue">₹0.00</div>
+        </div>
+        <div class="top-card">
+          <div class="label" id="leftLabel">Stock value</div>
+          <div class="value" id="leftValue">₹0.00</div>
+        </div>
+        <div class="top-card">
+          <div class="label" id="rightLabel">Net P&L</div>
+          <div class="value" id="rightValue">₹0.00</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="small-btn" id="themeBtn">Theme</button>
+        <button class="small-btn" id="shareBtn">Share</button>
+        <button class="small-btn" id="resetBtn">Reset</button>
+      </div>
+    </section>
+
+    <section class="mode-switch">
+      <label class="mode-option active" id="chargesModeLabel">
+        <input type="radio" name="mode" value="charges" checked />
+        P&L and Charges
+      </label>
+      <label class="mode-option" id="averageModeLabel">
+        <input type="radio" name="mode" value="average" />
+        Average
+      </label>
+    </section>
+
+    <section id="chargesSection" class="workspace">
+      <div class="left-stack">
+        <section class="card">
+          <div class="segment">
+            <button id="intradayBtn" class="active">Intraday</button>
+            <button id="deliveryBtn">Delivery</button>
+          </div>
+
+          <div class="trade-row">
+            <div>
+              <label for="quantity">Qty</label>
+              <div class="field"><input id="quantity" type="number" min="0" value="0" /></div>
+            </div>
+
+            <div>
+              <label for="buyPrice">Buy</label>
+              <div class="field"><span>₹</span><input id="buyPrice" type="number" min="0" step="0.01" value="0" /></div>
+            </div>
+
+            <div>
+              <label for="sellPrice">Sell</label>
+              <div class="field"><span>₹</span><input id="sellPrice" type="number" min="0" step="0.01" value="0" /></div>
+            </div>
+          </div>
+
+          <div class="check-line">
+            <input type="checkbox" id="sameSellPrice" />
+            <label for="sameSellPrice" class="inline-check-label">Auto-fill Sell same as Buy</label>
+          </div>
+
+          <div class="target-grid">
+            <div>
+              <label for="targetProfit">Target Profit Amount</label>
+              <div class="field"><span>₹</span><input id="targetProfit" type="number" min="0" step="0.01" value="0" /></div>
+            </div>
+            <div>
+              <label for="targetProfitPercent">Target Profit %</label>
+              <div class="field"><input id="targetProfitPercent" type="number" min="0" step="0.01" value="0" /><span>%</span></div>
+            </div>
+            <div>
+              <label>Target Sell Price</label>
+              <div class="field"><span>₹</span><input id="targetSellPrice" type="text" value="0.00" readonly /></div>
+            </div>
+          </div>
+
+          <div class="hint" id="chargeNote">Enter buy details to see buy-side charges.</div>
+        </section>
+
+        <section class="quote-card">
+          <div class="quote-title">Trading Reminder</div>
+          <div class="quote-text" id="quoteText">Have a good view. Not in hurry.</div>
+          <div class="quote-sub" id="quoteSub">Wait for clarity. Avoid forced entries.</div>
+          <div class="quote-actions">
+            <button class="quote-btn" id="nextQuoteBtn">Change quote</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="right-stack">
+        <section class="card">
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="m-label">Gross Profit</div>
+              <div class="m-value" id="grossProfit">₹0.00</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Net P&L %</div>
+              <div class="m-value" id="netPercent">0.00%</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Break-even Sell</div>
+              <div class="m-value" id="breakEvenPrice">₹0.00</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Brokerage</div>
+              <div class="m-value" id="brokerage">- ₹0.00</div>
+            </div>
+            <div class="metric wide">
+              <div class="m-label">Other charges/taxes</div>
+              <div class="m-value" id="otherCharges">- ₹0.00</div>
+            </div>
+          </div>
+
+          <div class="breakup">
+            <div class="row"><span>Buy-side charges</span><strong id="buySideChargesValue">₹0.00</strong></div>
+            <div class="row"><span>Sell-side charges</span><strong id="sellSideChargesValue">₹0.00</strong></div>
+            <div class="row"><span>Buy brokerage</span><strong id="buyBrokerageValue">₹0.00</strong></div>
+            <div class="row"><span>Sell brokerage</span><strong id="sellBrokerageValue">₹0.00</strong></div>
+            <div class="row"><span id="transactionLabel">Transaction charges</span><strong id="transactionValue">₹0.00</strong></div>
+            <div class="row"><span id="sttLabel">STT/CTT</span><strong id="sttValue">₹0.00</strong></div>
+            <div class="row"><span>SEBI tax</span><strong id="sebiValue">₹0.00</strong></div>
+            <div class="row"><span>Stamp Duty</span><strong id="stampValue">₹0.00</strong></div>
+            <div class="row"><span>GST</span><strong id="gstValue">₹0.00</strong></div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="averageSection" class="workspace hidden">
+      <div class="left-stack">
+        <section class="card">
+          <div class="input-grid">
+            <div>
+              <label for="currentQty">Current Qty</label>
+              <div class="field"><input id="currentQty" type="number" min="0" value="0" /></div>
+            </div>
+
+            <div>
+              <label for="currentAvg">Current Avg</label>
+              <div class="field"><span>₹</span><input id="currentAvg" type="number" min="0" step="0.01" value="0" /></div>
+            </div>
+          </div>
+
+          <div id="averageRows"></div>
+
+          <button class="add-btn" id="addAverageRow">+ Add next buy</button>
+        </section>
+
+        <section class="card">
+          <div class="input-grid">
+            <div>
+              <label for="targetAverage">Target Avg</label>
+              <div class="field"><span>₹</span><input id="targetAverage" type="number" min="0" step="0.01" value="0" /></div>
+            </div>
+            <div>
+              <label>Using Buy Price</label>
+              <div class="field"><span>₹</span><input id="autoTargetBuyPrice" type="text" value="0.00" readonly /></div>
+            </div>
+          </div>
+
+          <div class="hint">Planner automatically uses your latest added buy price.</div>
+        </section>
+      </div>
+
+      <div class="right-stack">
+        <section class="card average-results">
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="m-label">Current value</div>
+              <div class="m-value" id="avgCurrentValue">₹0.00</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">New buy value</div>
+              <div class="m-value" id="avgNewBuyValue">₹0.00</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Total quantity</div>
+              <div class="m-value" id="avgTotalQty">0</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Total amount</div>
+              <div class="m-value" id="avgTotalAmount">₹0.00</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Average before target</div>
+              <div class="m-value" id="targetBaseAverage">₹0.00</div>
+            </div>
+            <div class="metric">
+              <div class="m-label">Qty needed</div>
+              <div class="m-value" id="targetQtyNeeded">0</div>
+            </div>
+            <div class="metric wide">
+              <div class="m-label">Amount needed</div>
+              <div class="m-value" id="targetAmountNeeded">₹0.00</div>
+            </div>
+            <div class="metric wide">
+              <div class="m-label">Status</div>
+              <div class="m-value" id="targetAvgStatus">Enter values</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <div class="footnote">BPL saves your latest entries on this device. Buy-side and sell-side charges are separated. Final broker values can differ slightly because of rounding, buffers, or broker-side order handling.</div>
+  </main>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+
+    const STORAGE_KEY = 'bplOptimizedStateV1';
+
+    const state = {
+      tradeType: 'intraday',
+      mode: 'charges',
+      averageRows: 1,
+      theme: 'light'
+    };
+
+    const rates = {
+      delivery: {
+        brokerageRate: 0,
+        brokerageMaxPerOrder: 0,
+        transaction: 0.0000297,
+        stt: 0.001,
+        sebi: 0.000001,
+        stamp: 0,
+        gst: 0.18,
+        transactionLabel: 'Transaction charges (0.00297%)',
+        sttLabel: 'STT/CTT (0.1% buy + sell)'
+      },
+      intraday: {
+        brokerageRate: 0.0005,
+        brokerageMaxPerOrder: 10,
+        transaction: 0.0000297,
+        stt: 0.00025,
+        sebi: 0.000001,
+        stamp: 0,
+        gst: 0.18,
+        transactionLabel: 'Transaction charges (0.00297%)',
+        sttLabel: 'STT/CTT (0.025% sell side)'
+      }
+    };
+
+    const els = {
+      mainLabel: document.getElementById('mainLabel'),
+      mainValue: document.getElementById('mainValue'),
+      leftLabel: document.getElementById('leftLabel'),
+      leftValue: document.getElementById('leftValue'),
+      rightLabel: document.getElementById('rightLabel'),
+      rightValue: document.getElementById('rightValue'),
+
+      chargesSection: document.getElementById('chargesSection'),
+      averageSection: document.getElementById('averageSection'),
+      chargesModeLabel: document.getElementById('chargesModeLabel'),
+      averageModeLabel: document.getElementById('averageModeLabel'),
+
+      quantity: document.getElementById('quantity'),
+      buyPrice: document.getElementById('buyPrice'),
+      sellPrice: document.getElementById('sellPrice'),
+      sameSellPrice: document.getElementById('sameSellPrice'),
+      targetProfit: document.getElementById('targetProfit'),
+      targetProfitPercent: document.getElementById('targetProfitPercent'),
+      targetSellPrice: document.getElementById('targetSellPrice'),
+      chargeNote: document.getElementById('chargeNote'),
+      grossProfit: document.getElementById('grossProfit'),
+      netPercent: document.getElementById('netPercent'),
+      breakEvenPrice: document.getElementById('breakEvenPrice'),
+      brokerage: document.getElementById('brokerage'),
+      otherCharges: document.getElementById('otherCharges'),
+      buySideChargesValue: document.getElementById('buySideChargesValue'),
+      sellSideChargesValue: document.getElementById('sellSideChargesValue'),
+      buyBrokerageValue: document.getElementById('buyBrokerageValue'),
+      sellBrokerageValue: document.getElementById('sellBrokerageValue'),
+      transactionLabel: document.getElementById('transactionLabel'),
+      transactionValue: document.getElementById('transactionValue'),
+      sttLabel: document.getElementById('sttLabel'),
+      sttValue: document.getElementById('sttValue'),
+      sebiValue: document.getElementById('sebiValue'),
+      stampValue: document.getElementById('stampValue'),
+      gstValue: document.getElementById('gstValue'),
+      intradayBtn: document.getElementById('intradayBtn'),
+      deliveryBtn: document.getElementById('deliveryBtn'),
+
+      currentQty: document.getElementById('currentQty'),
+      currentAvg: document.getElementById('currentAvg'),
+      averageRows: document.getElementById('averageRows'),
+      addAverageRow: document.getElementById('addAverageRow'),
+      targetAverage: document.getElementById('targetAverage'),
+      autoTargetBuyPrice: document.getElementById('autoTargetBuyPrice'),
+      targetBaseAverage: document.getElementById('targetBaseAverage'),
+      targetQtyNeeded: document.getElementById('targetQtyNeeded'),
+      targetAmountNeeded: document.getElementById('targetAmountNeeded'),
+      targetAvgStatus: document.getElementById('targetAvgStatus'),
+      avgCurrentValue: document.getElementById('avgCurrentValue'),
+      avgNewBuyValue: document.getElementById('avgNewBuyValue'),
+      avgTotalQty: document.getElementById('avgTotalQty'),
+      avgTotalAmount: document.getElementById('avgTotalAmount'),
+
+      resetBtn: document.getElementById('resetBtn'),
+      shareBtn: document.getElementById('shareBtn'),
+      themeBtn: document.getElementById('themeBtn'),
+      quoteText: document.getElementById('quoteText'),
+      quoteSub: document.getElementById('quoteSub'),
+      nextQuoteBtn: document.getElementById('nextQuoteBtn')
+    };
+
+    const tradingQuotes = [
+      {
+        text: 'If you see a vision that your trade is in profit, do not trade that day.',
+        sub: 'Do not enter just because the mind is showing profit.'
+      },
+      {
+        text: 'Do not trust your decision until it gives repeated profits.',
+        sub: 'Build confidence only after at least 100 tracked trades.'
+      },
+      {
+        text: 'Have a good view. Not in hurry.',
+        sub: 'Wait for clarity. Avoid forced entries.'
+      },
+      {
+        text: 'No trade is also a position.',
+        sub: 'Cash protects you when the setup is not clear.'
+      }
+    ];
+
+    let quoteIndex = 0;
+
+    function showQuote(index = null) {
+      if (!els.quoteText || !els.quoteSub) return;
+      if (index === null) {
+        quoteIndex = new Date().getDate() % tradingQuotes.length;
+      } else {
+        quoteIndex = index % tradingQuotes.length;
+      }
+      const quote = tradingQuotes[quoteIndex];
+      els.quoteText.textContent = quote.text;
+      els.quoteSub.textContent = quote.sub;
+    }
+
+    function startAutoQuotes() {
+      showQuote();
+      setInterval(() => {
+        showQuote(quoteIndex + 1);
+      }, 6000);
+    }
+
+    function value(input) {
+      return Math.max(0, Number(input.value) || 0);
+    }
+
+    function money(num) {
+      return '₹' + (Number.isFinite(num) ? num : 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function numberFormat(num) {
+      return (Number.isFinite(num) ? num : 0).toLocaleString('en-IN', {
+        maximumFractionDigits: 2
+      });
+    }
+
+    function brokerageForOrder(orderValue) {
+      const r = rates[state.tradeType];
+      if (orderValue <= 0 || r.brokerageRate === 0) return 0;
+      return Math.min(orderValue * r.brokerageRate, r.brokerageMaxPerOrder);
+    }
+
+    function chargesFor(buyValue, sellValue) {
+      const r = rates[state.tradeType];
+
+      const buyBrokerage = brokerageForOrder(buyValue);
+      const sellBrokerage = brokerageForOrder(sellValue);
+
+      const buyTransaction = buyValue * r.transaction;
+      const sellTransaction = sellValue * r.transaction;
+
+      const buySebi = buyValue * r.sebi;
+      const sellSebi = sellValue * r.sebi;
+
+      // Delivery STT is charged on both buy and sell. Intraday STT is charged on sell side only.
+      const buyStt = state.tradeType === 'delivery' ? buyValue * r.stt : 0;
+      const sellStt = sellValue * r.stt;
+
+      const buyStamp = buyValue * r.stamp;
+      const sellStamp = 0;
+
+      const buyGst = (buyBrokerage + buyTransaction + buySebi) * r.gst;
+      const sellGst = (sellBrokerage + sellTransaction + sellSebi) * r.gst;
+
+      const buySideCharges = buyBrokerage + buyTransaction + buyStt + buySebi + buyStamp + buyGst;
+      const sellSideCharges = sellBrokerage + sellTransaction + sellStt + sellSebi + sellStamp + sellGst;
+
+      const brokerage = buyBrokerage + sellBrokerage;
+      const transaction = buyTransaction + sellTransaction;
+      const stt = buyStt + sellStt;
+      const sebi = buySebi + sellSebi;
+      const stamp = buyStamp + sellStamp;
+      const gst = buyGst + sellGst;
+      const otherCharges = transaction + stt + sebi + stamp + gst;
+
+      return {
+        buyBrokerage, sellBrokerage, brokerage,
+        buyTransaction, sellTransaction, transaction,
+        buyStt, sellStt, stt,
+        buySebi, sellSebi, sebi,
+        buyStamp, sellStamp, stamp,
+        buyGst, sellGst, gst,
+        buySideCharges, sellSideCharges, otherCharges
+      };
+    }
+
+    function netAtSellPrice(qty, buy, sell) {
+      const buyValue = qty * buy;
+      const sellValue = qty * sell;
+      const ch = chargesFor(buyValue, sellValue);
+      return (sellValue - buyValue) - ch.brokerage - ch.otherCharges;
+    }
+
+    function findSellPriceForTarget(qty, buy, targetProfit) {
+      if (qty <= 0 || buy <= 0) return 0;
+      let low = 0;
+      let high = buy * 2 + 100;
+      let guard = 0;
+
+      while (netAtSellPrice(qty, buy, high) < targetProfit && guard < 60) {
+        high *= 1.5;
+        guard++;
+      }
+
+      for (let i = 0; i < 80; i++) {
+        const mid = (low + high) / 2;
+        if (netAtSellPrice(qty, buy, mid) >= targetProfit) high = mid;
+        else low = mid;
+      }
+
+      return high;
+    }
+
+    function getTargetProfitAmount(buyValue) {
+      const amount = value(els.targetProfit);
+      const percent = value(els.targetProfitPercent);
+
+      if (amount > 0) {
+        els.targetProfitPercent.disabled = true;
+        els.targetProfit.disabled = false;
+        return amount;
+      }
+
+      if (percent > 0) {
+        els.targetProfit.disabled = true;
+        els.targetProfitPercent.disabled = false;
+        return buyValue * (percent / 100);
+      }
+
+      els.targetProfit.disabled = false;
+      els.targetProfitPercent.disabled = false;
+      return 0;
+    }
+
+    function calculateCharges(save = true) {
+      if (els.sameSellPrice.checked) {
+        els.sellPrice.value = els.buyPrice.value;
+      }
+
+      const qty = value(els.quantity);
+      const buy = value(els.buyPrice);
+      const sell = value(els.sellPrice);
+      const r = rates[state.tradeType];
+
+      const buyValue = qty * buy;
+      const hasSell = sell > 0;
+      const sellValue = hasSell ? qty * sell : 0;
+      const ch = chargesFor(buyValue, sellValue);
+      const grossProfit = hasSell ? (sellValue - buyValue) : 0;
+      const netPL = hasSell ? (grossProfit - ch.brokerage - ch.otherCharges) : 0;
+      const amountRequired = buyValue + ch.buySideCharges;
+      const netPercent = hasSell && buyValue > 0 ? (netPL / buyValue) * 100 : 0;
+      const breakEvenPrice = findSellPriceForTarget(qty, buy, 0);
+      const targetProfitAmount = getTargetProfitAmount(buyValue);
+      const targetSellPrice = findSellPriceForTarget(qty, buy, targetProfitAmount);
+
+      if (buyValue <= 0) {
+        els.chargeNote.textContent = 'Enter buy details to see buy-side charges.';
+      } else if (hasSell) {
+        els.chargeNote.textContent = 'Buy + sell entered: buy-side and sell-side charges are shown separately and combined.';
+      } else {
+        els.chargeNote.textContent = 'Only buy entered: showing buy-side charges only.';
+      }
+
+      els.mainLabel.textContent = hasSell ? 'Amount required with sell estimate' : 'Buy amount required';
+      els.mainValue.textContent = money(amountRequired);
+      els.leftLabel.textContent = 'Stock value';
+      els.leftValue.textContent = money(buyValue);
+      els.rightLabel.textContent = hasSell ? 'Net P&L' : 'Sell not entered';
+      els.rightValue.textContent = hasSell ? money(netPL) : '—';
+      els.rightValue.style.color = !hasSell ? '#ffffff' : (netPL >= 0 ? '#ffffff' : '#ffdddd');
+
+      els.grossProfit.textContent = money(grossProfit);
+      els.netPercent.textContent = numberFormat(netPercent) + '%';
+      els.netPercent.style.color = netPercent >= 0 ? 'var(--green)' : 'var(--red)';
+      els.breakEvenPrice.textContent = money(breakEvenPrice);
+      els.targetSellPrice.value = targetSellPrice.toFixed(2);
+      els.brokerage.textContent = '- ' + money(ch.brokerage);
+      els.otherCharges.textContent = '- ' + money(ch.otherCharges);
+      els.buySideChargesValue.textContent = money(ch.buySideCharges);
+      els.sellSideChargesValue.textContent = money(ch.sellSideCharges);
+      els.buyBrokerageValue.textContent = money(ch.buyBrokerage);
+      els.sellBrokerageValue.textContent = money(ch.sellBrokerage);
+      els.transactionLabel.textContent = r.transactionLabel;
+      els.transactionValue.textContent = money(ch.transaction);
+      els.sttLabel.textContent = r.sttLabel;
+      els.sttValue.textContent = money(ch.stt);
+      els.sebiValue.textContent = money(ch.sebi);
+      els.stampValue.textContent = money(ch.stamp);
+      els.gstValue.textContent = money(ch.gst);
+
+      if (save) saveState();
+    }
+
+    function renderAverageRows(rows = null) {
+      els.averageRows.innerHTML = '';
+      const sourceRows = rows || Array.from({ length: state.averageRows }, () => ({ qty: 0, price: 0 }));
+      state.averageRows = Math.max(1, sourceRows.length);
+
+      sourceRows.forEach((data, index) => {
+        const row = document.createElement('div');
+        row.className = 'avg-entry';
+        row.innerHTML = `
+          <div>
+            <label>Buy ${index + 1} Qty</label>
+            <div class="field"><input class="avgQty" type="number" min="0" value="${data.qty || 0}" /></div>
+          </div>
+          <div>
+            <label>Buy ${index + 1} Price</label>
+            <div class="field"><span>₹</span><input class="avgPrice" type="number" min="0" step="0.01" value="${data.price || 0}" /></div>
+          </div>
+          <button class="remove-btn" title="Remove" ${sourceRows.length === 1 ? 'disabled style="opacity:.35"' : ''}>×</button>
+        `;
+
+        row.querySelectorAll('input').forEach(input => {
+          input.addEventListener('input', () => calculateAverage(true));
+          input.addEventListener('change', () => calculateAverage(true));
+        });
+
+        row.querySelector('.remove-btn').addEventListener('click', () => {
+          if (els.averageRows.querySelectorAll('.avg-entry').length <= 1) return;
+          row.remove();
+          relabelAverageRows();
+          calculateAverage(true);
+        });
+
+        els.averageRows.appendChild(row);
+      });
+
+      calculateAverage(false);
+    }
+
+    function relabelAverageRows() {
+      const rows = [...els.averageRows.querySelectorAll('.avg-entry')];
+      rows.forEach((row, index) => {
+        row.querySelectorAll('label')[0].textContent = `Buy ${index + 1} Qty`;
+        row.querySelectorAll('label')[1].textContent = `Buy ${index + 1} Price`;
+      });
+      state.averageRows = rows.length;
+      rows.forEach(row => {
+        const btn = row.querySelector('.remove-btn');
+        btn.disabled = rows.length === 1;
+        btn.style.opacity = rows.length === 1 ? '.35' : '1';
+      });
+    }
+
+    function calculateAverage(save = true) {
+      const currentQty = value(els.currentQty);
+      const currentAvg = value(els.currentAvg);
+      const currentValue = currentQty * currentAvg;
+
+      let addedQty = 0;
+      let addedValue = 0;
+      let latestBuyPrice = 0;
+
+      els.averageRows.querySelectorAll('.avg-entry').forEach(row => {
+        const qty = value(row.querySelector('.avgQty'));
+        const price = value(row.querySelector('.avgPrice'));
+        addedQty += qty;
+        addedValue += qty * price;
+        if (price > 0) latestBuyPrice = price;
+      });
+
+      const totalQty = currentQty + addedQty;
+      const totalAmount = currentValue + addedValue;
+      const newAverage = totalQty > 0 ? totalAmount / totalQty : 0;
+
+      const targetAvg = value(els.targetAverage);
+      const targetBuyPrice = latestBuyPrice;
+      const baseQtyForTarget = totalQty;
+      const baseAvgForTarget = newAverage;
+      let qtyNeeded = 0;
+      let targetStatus = 'Enter values';
+
+      if (baseQtyForTarget <= 0 || baseAvgForTarget <= 0 || targetAvg <= 0 || targetBuyPrice <= 0) {
+        targetStatus = 'Enter holding, buy row, and target avg';
+      } else if (Math.abs(targetAvg - baseAvgForTarget) < 0.000001) {
+        qtyNeeded = 0;
+        targetStatus = 'Already at target';
+      } else {
+        const denominator = targetAvg - targetBuyPrice;
+        const numerator = baseQtyForTarget * (baseAvgForTarget - targetAvg);
+        const rawQty = denominator !== 0 ? numerator / denominator : -1;
+
+        const targetIsBetweenPrices =
+          (targetAvg < baseAvgForTarget && targetAvg > targetBuyPrice) ||
+          (targetAvg > baseAvgForTarget && targetAvg < targetBuyPrice);
+
+        if (!targetIsBetweenPrices || rawQty <= 0 || !Number.isFinite(rawQty)) {
+          qtyNeeded = 0;
+          targetStatus = 'Not possible at this buy price';
+        } else {
+          qtyNeeded = Math.ceil(rawQty);
+          targetStatus = 'Possible';
+        }
+      }
+
+      const amountNeeded = qtyNeeded * targetBuyPrice;
+
+      els.mainLabel.textContent = 'New average price';
+      els.mainValue.textContent = money(newAverage);
+      els.leftLabel.textContent = 'Total quantity';
+      els.leftValue.textContent = numberFormat(totalQty);
+      els.rightLabel.textContent = 'Total amount';
+      els.rightValue.textContent = money(totalAmount);
+      els.rightValue.style.color = '#ffffff';
+
+      els.avgCurrentValue.textContent = money(currentValue);
+      els.avgNewBuyValue.textContent = money(addedValue);
+      els.avgTotalQty.textContent = numberFormat(totalQty);
+      els.avgTotalAmount.textContent = money(totalAmount);
+      els.autoTargetBuyPrice.value = targetBuyPrice.toFixed(2);
+      els.targetBaseAverage.textContent = money(baseAvgForTarget);
+      els.targetQtyNeeded.textContent = numberFormat(qtyNeeded);
+      els.targetAmountNeeded.textContent = money(amountNeeded);
+      els.targetAvgStatus.textContent = targetStatus;
+      els.targetAvgStatus.style.color = targetStatus === 'Possible' ? 'var(--green)' : 'var(--muted)';
+
+      if (save) saveState();
+    }
+
+    function setTradeType(type, save = true) {
+      state.tradeType = type;
+      els.intradayBtn.classList.toggle('active', type === 'intraday');
+      els.deliveryBtn.classList.toggle('active', type === 'delivery');
+      calculateCharges(save);
+    }
+
+    function setMode(mode, save = true) {
+      state.mode = mode;
+      els.chargesSection.classList.toggle('hidden', mode !== 'charges');
+      els.averageSection.classList.toggle('hidden', mode !== 'average');
+      els.chargesModeLabel.classList.toggle('active', mode === 'charges');
+      els.averageModeLabel.classList.toggle('active', mode === 'average');
+      document.querySelector(`input[name="mode"][value="${mode}"]`).checked = true;
+
+      if (mode === 'charges') calculateCharges(save);
+      else calculateAverage(save);
+    }
+
+    function getAverageRowsData() {
+      return [...els.averageRows.querySelectorAll('.avg-entry')].map(row => ({
+        qty: row.querySelector('.avgQty').value,
+        price: row.querySelector('.avgPrice').value
+      }));
+    }
+
+    function saveState() {
+      const data = {
+        tradeType: state.tradeType,
+        mode: state.mode,
+        theme: state.theme,
+        quantity: els.quantity.value,
+        buyPrice: els.buyPrice.value,
+        sellPrice: els.sellPrice.value,
+        sameSellPrice: els.sameSellPrice.checked,
+        targetProfit: els.targetProfit.value,
+        targetProfitPercent: els.targetProfitPercent.value,
+        currentQty: els.currentQty.value,
+        currentAvg: els.currentAvg.value,
+        targetAverage: els.targetAverage.value,
+        averageRows: getAverageRowsData()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          renderAverageRows([{ qty: 0, price: 0 }]);
+          return;
+        }
+
+        const data = JSON.parse(raw);
+        state.theme = data.theme || 'light';
+        document.body.classList.toggle('dark', state.theme === 'dark');
+
+        els.quantity.value = data.quantity ?? 0;
+        els.buyPrice.value = data.buyPrice ?? 0;
+        els.sellPrice.value = data.sellPrice ?? 0;
+        els.sameSellPrice.checked = Boolean(data.sameSellPrice);
+        els.targetProfit.value = data.targetProfit ?? 0;
+        els.targetProfitPercent.value = data.targetProfitPercent ?? 0;
+        els.currentQty.value = data.currentQty ?? 0;
+        els.currentAvg.value = data.currentAvg ?? 0;
+        els.targetAverage.value = data.targetAverage ?? 0;
+
+        renderAverageRows(data.averageRows && data.averageRows.length ? data.averageRows : [{ qty: 0, price: 0 }]);
+        setTradeType(data.tradeType || 'intraday', false);
+        setMode(data.mode || 'charges', false);
+      } catch (error) {
+        renderAverageRows([{ qty: 0, price: 0 }]);
+      }
+    }
+
+    function resetAll() {
+      localStorage.removeItem(STORAGE_KEY);
+      state.tradeType = 'intraday';
+      state.mode = 'charges';
+
+      [
+        els.quantity, els.buyPrice, els.sellPrice, els.targetProfit, els.targetProfitPercent,
+        els.currentQty, els.currentAvg, els.targetAverage
+      ].forEach(input => input.value = 0);
+
+      els.sameSellPrice.checked = false;
+      renderAverageRows([{ qty: 0, price: 0 }]);
+      setTradeType('intraday', false);
+      setMode('charges', false);
+      saveState();
+    }
+
+    async function shareResult() {
+      const text = state.mode === 'charges'
+        ? `BPL\nAmount Required: ${els.mainValue.textContent}\n${els.leftLabel.textContent}: ${els.leftValue.textContent}\n${els.rightLabel.textContent}: ${els.rightValue.textContent}\nBreak-even: ${els.breakEvenPrice.textContent}`
+        : `BPL\nNew Average: ${els.mainValue.textContent}\nTotal Qty: ${els.leftValue.textContent}\nTotal Amount: ${els.rightValue.textContent}\nQty Needed: ${els.targetQtyNeeded.textContent}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'BPL', text });
+          return;
+        } catch (error) {}
+      }
+
+      await navigator.clipboard.writeText(text);
+      alert('Result copied. You can paste it anywhere.');
+    }
+
+    function toggleTheme() {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      document.body.classList.toggle('dark', state.theme === 'dark');
+      saveState();
+    }
+
+    els.intradayBtn.addEventListener('click', () => setTradeType('intraday'));
+    els.deliveryBtn.addEventListener('click', () => setTradeType('delivery'));
+
+    [els.quantity, els.buyPrice, els.sellPrice, els.targetProfit, els.targetProfitPercent].forEach(input => {
+      input.addEventListener('input', () => calculateCharges(true));
+      input.addEventListener('change', () => calculateCharges(true));
+    });
+
+    els.sameSellPrice.addEventListener('change', () => calculateCharges(true));
+
+    [els.currentQty, els.currentAvg, els.targetAverage].forEach(input => {
+      input.addEventListener('input', () => calculateAverage(true));
+      input.addEventListener('change', () => calculateAverage(true));
+    });
+
+    document.querySelectorAll('input[name="mode"]').forEach(input => {
+      input.addEventListener('change', () => setMode(input.value));
+    });
+
+    els.addAverageRow.addEventListener('click', () => {
+      const rows = getAverageRowsData();
+      rows.push({ qty: 0, price: 0 });
+      renderAverageRows(rows);
+      calculateAverage(true);
+    });
+
+    els.resetBtn.addEventListener('click', resetAll);
+    els.shareBtn.addEventListener('click', shareResult);
+    els.themeBtn.addEventListener('click', toggleTheme);
+    if (els.nextQuoteBtn) {
+      els.nextQuoteBtn.addEventListener('click', () => {
+        showQuote(quoteIndex + 1);
+      });
+    }
+
+    loadState();
+    startAutoQuotes();
+  </script>
+</body>
+</html>
