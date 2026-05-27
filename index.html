@@ -71,11 +71,23 @@
       align-items: center;
     }
 
+    .brand-block {
+      min-width: 140px;
+    }
+
     h1 {
       margin: 0;
-      font-size: 22px;
+      font-size: 24px;
       letter-spacing: -.3px;
       line-height: 1;
+    }
+
+    .brand-subtitle {
+      margin-top: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      opacity: .82;
+      white-space: nowrap;
     }
 
     .top-results {
@@ -94,10 +106,21 @@
 
     .top-card .label {
       color: #fff;
-      opacity: .86;
+      opacity: .9;
       font-size: 11px;
-      font-weight: 800;
-      margin-bottom: 4px;
+      font-weight: 900;
+      margin-bottom: 2px;
+    }
+
+    .top-card .mini-label {
+      color: #fff;
+      opacity: .72;
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .top-card .value {
@@ -108,6 +131,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    .top-card .value.pnl-positive { color: #86efac !important; }
+    .top-card .value.pnl-negative { color: #fecaca !important; }
+    .top-card .value.pnl-neutral { color: #ffffff !important; }
 
     .top-card.main .value {
       font-size: 22px;
@@ -354,6 +381,10 @@
       word-break: break-word;
     }
 
+    .profit-positive { color: var(--green) !important; }
+    .profit-negative { color: var(--red) !important; }
+    .profit-neutral { color: var(--ink) !important; }
+
     .metric.wide {
       grid-column: 1 / -1;
     }
@@ -551,6 +582,10 @@
       .top-actions {
         justify-content: flex-start;
       }
+
+      .brand-block {
+        min-width: 0;
+      }
     }
 
     @media (max-width: 560px) {
@@ -576,19 +611,25 @@
 <body>
   <main class="app desktop-fit">
     <section class="topbar">
-      <h1>BPL</h1>
+      <div class="brand-block">
+        <h1>BPL</h1>
+        <div class="brand-subtitle">Brokerage, Profit &amp; Loss</div>
+      </div>
 
       <div class="top-results">
         <div class="top-card main">
-          <div class="label" id="mainLabel">Amount required</div>
+          <div class="label" id="mainLabel">Amount Required</div>
+          <div class="mini-label" id="mainSubLabel">Buy + brokerage charges incl. taxes</div>
           <div class="value" id="mainValue">₹0.00</div>
         </div>
         <div class="top-card">
-          <div class="label" id="leftLabel">Stock value</div>
+          <div class="label" id="leftLabel">Stock Value</div>
+          <div class="mini-label" id="leftSubLabel">Qty × Buy price</div>
           <div class="value" id="leftValue">₹0.00</div>
         </div>
         <div class="top-card">
-          <div class="label" id="rightLabel">Net P&L</div>
+          <div class="label" id="rightLabel">Actual Net P&L</div>
+          <div class="mini-label" id="rightSubLabel">After brokerage & charges</div>
           <div class="value" id="rightValue">₹0.00</div>
         </div>
       </div>
@@ -643,7 +684,7 @@
 
           <div class="target-grid">
             <div>
-              <label for="targetProfit">Target Profit Amount</label>
+              <label for="targetProfit">Target Profit ₹</label>
               <div class="field"><span>₹</span><input id="targetProfit" type="number" min="0" step="0.01" value="0" /></div>
             </div>
             <div>
@@ -651,12 +692,15 @@
               <div class="field"><input id="targetProfitPercent" type="number" min="0" step="0.01" value="0" /><span>%</span></div>
             </div>
             <div>
-              <label>Target Sell Price</label>
+              <label>Required Sell Price</label>
               <div class="field"><span>₹</span><input id="targetSellPrice" type="text" value="0.00" readonly /></div>
             </div>
           </div>
+          <div class="button-row">
+            <button class="action-btn secondary" id="useTargetSellBtn">Use required sell price</button>
+          </div>
 
-          <div class="hint" id="chargeNote">Enter buy details to see buy-side charges.</div>
+          <div class="hint" id="chargeNote">Actual P&L changes only with Sell Price. Target Profit shows required sell price.</div>
         </section>
 
         <section class="quote-card">
@@ -685,10 +729,14 @@
               <div class="m-value" id="breakEvenPrice">₹0.00</div>
             </div>
             <div class="metric">
+              <div class="m-label">Target Profit Plan</div>
+              <div class="m-value" id="targetPlanValue">₹0.00</div>
+            </div>
+            <div class="metric">
               <div class="m-label">Brokerage</div>
               <div class="m-value" id="brokerage">- ₹0.00</div>
             </div>
-            <div class="metric wide">
+            <div class="metric">
               <div class="m-label">Other charges/taxes</div>
               <div class="m-value" id="otherCharges">- ₹0.00</div>
             </div>
@@ -830,10 +878,13 @@
     const els = {
       mainLabel: document.getElementById('mainLabel'),
       mainValue: document.getElementById('mainValue'),
+      mainSubLabel: document.getElementById('mainSubLabel'),
       leftLabel: document.getElementById('leftLabel'),
       leftValue: document.getElementById('leftValue'),
+      leftSubLabel: document.getElementById('leftSubLabel'),
       rightLabel: document.getElementById('rightLabel'),
       rightValue: document.getElementById('rightValue'),
+      rightSubLabel: document.getElementById('rightSubLabel'),
 
       chargesSection: document.getElementById('chargesSection'),
       averageSection: document.getElementById('averageSection'),
@@ -847,6 +898,8 @@
       targetProfit: document.getElementById('targetProfit'),
       targetProfitPercent: document.getElementById('targetProfitPercent'),
       targetSellPrice: document.getElementById('targetSellPrice'),
+      useTargetSellBtn: document.getElementById('useTargetSellBtn'),
+      targetPlanValue: document.getElementById('targetPlanValue'),
       chargeNote: document.getElementById('chargeNote'),
       grossProfit: document.getElementById('grossProfit'),
       netPercent: document.getElementById('netPercent'),
@@ -1024,6 +1077,13 @@
       return high;
     }
 
+    function updateProfitColor(element, value, isActive = true) {
+      element.classList.remove('profit-positive', 'profit-negative', 'profit-neutral');
+      if (!isActive || value === 0) element.classList.add('profit-neutral');
+      else if (value > 0) element.classList.add('profit-positive');
+      else element.classList.add('profit-negative');
+    }
+
     function getTargetProfitAmount(buyValue) {
       const amount = value(els.targetProfit);
       const percent = value(els.targetProfitPercent);
@@ -1045,6 +1105,20 @@
       return 0;
     }
 
+    function clearDisabledTargetIfEmpty() {
+      if (value(els.targetProfit) === 0 && value(els.targetProfitPercent) === 0) {
+        els.targetProfit.disabled = false;
+        els.targetProfitPercent.disabled = false;
+      }
+    }
+
+    function updateTopPnlColor(value, isActive = true) {
+      els.rightValue.classList.remove('pnl-positive', 'pnl-negative', 'pnl-neutral');
+      if (!isActive || value === 0) els.rightValue.classList.add('pnl-neutral');
+      else if (value > 0) els.rightValue.classList.add('pnl-positive');
+      else els.rightValue.classList.add('pnl-negative');
+    }
+
     function calculateCharges(save = true) {
       if (els.sameSellPrice.checked) {
         els.sellPrice.value = els.buyPrice.value;
@@ -1064,30 +1138,37 @@
       const amountRequired = buyValue + ch.buySideCharges;
       const netPercent = hasSell && buyValue > 0 ? (netPL / buyValue) * 100 : 0;
       const breakEvenPrice = findSellPriceForTarget(qty, buy, 0);
+      clearDisabledTargetIfEmpty();
       const targetProfitAmount = getTargetProfitAmount(buyValue);
       const targetSellPrice = findSellPriceForTarget(qty, buy, targetProfitAmount);
 
       if (buyValue <= 0) {
-        els.chargeNote.textContent = 'Enter buy details to see buy-side charges.';
+        els.chargeNote.textContent = 'Actual P&L changes only with Sell Price. Target Profit shows required sell price.';
       } else if (hasSell) {
-        els.chargeNote.textContent = 'Buy + sell entered: buy-side and sell-side charges are shown separately and combined.';
+        els.chargeNote.textContent = 'Buy + sell entered: actual P&L and combined charges are shown.';
       } else {
-        els.chargeNote.textContent = 'Only buy entered: showing buy-side charges only.';
+        els.chargeNote.textContent = 'Only buy entered: buy-side charges shown. Add Sell Price to see actual P&L.';
       }
 
-      els.mainLabel.textContent = hasSell ? 'Amount required with sell estimate' : 'Buy amount required';
+      els.mainLabel.textContent = hasSell ? 'Amount Required' : 'Buy Amount Required';
+      els.mainSubLabel.textContent = 'Buy + brokerage charges incl. taxes';
       els.mainValue.textContent = money(amountRequired);
-      els.leftLabel.textContent = 'Stock value';
+      els.leftLabel.textContent = 'Stock Value';
+      els.leftSubLabel.textContent = 'Qty × Buy price';
       els.leftValue.textContent = money(buyValue);
-      els.rightLabel.textContent = hasSell ? 'Net P&L' : 'Sell not entered';
+      els.rightLabel.textContent = hasSell ? 'Actual Net P&L' : 'Sell not entered';
+      els.rightSubLabel.textContent = hasSell ? 'After brokerage & charges' : 'Enter sell price for actual P&L';
       els.rightValue.textContent = hasSell ? money(netPL) : '—';
-      els.rightValue.style.color = !hasSell ? '#ffffff' : (netPL >= 0 ? '#ffffff' : '#ffdddd');
+      updateTopPnlColor(netPL, hasSell);
 
-      els.grossProfit.textContent = money(grossProfit);
-      els.netPercent.textContent = numberFormat(netPercent) + '%';
-      els.netPercent.style.color = netPercent >= 0 ? 'var(--green)' : 'var(--red)';
+      els.grossProfit.textContent = hasSell ? money(grossProfit) : '—';
+      updateProfitColor(els.grossProfit, grossProfit, hasSell);
+      els.netPercent.textContent = hasSell ? numberFormat(netPercent) + '%' : '—';
+      updateProfitColor(els.netPercent, netPercent, hasSell);
       els.breakEvenPrice.textContent = money(breakEvenPrice);
       els.targetSellPrice.value = targetSellPrice.toFixed(2);
+      els.targetPlanValue.textContent = money(targetProfitAmount);
+      updateProfitColor(els.targetPlanValue, targetProfitAmount, targetProfitAmount > 0);
       els.brokerage.textContent = '- ' + money(ch.brokerage);
       els.otherCharges.textContent = '- ' + money(ch.otherCharges);
       els.buySideChargesValue.textContent = money(ch.buySideCharges);
@@ -1210,13 +1291,16 @@
 
       const amountNeeded = qtyNeeded * targetBuyPrice;
 
-      els.mainLabel.textContent = 'New average price';
+      els.mainLabel.textContent = 'New Average Price';
+      els.mainSubLabel.textContent = 'After added buys';
       els.mainValue.textContent = money(newAverage);
-      els.leftLabel.textContent = 'Total quantity';
+      els.leftLabel.textContent = 'Total Quantity';
+      els.leftSubLabel.textContent = 'Current + new buys';
       els.leftValue.textContent = numberFormat(totalQty);
-      els.rightLabel.textContent = 'Total amount';
+      els.rightLabel.textContent = 'Total Amount';
+      els.rightSubLabel.textContent = 'Current value + new buy value';
       els.rightValue.textContent = money(totalAmount);
-      els.rightValue.style.color = '#ffffff';
+      updateTopPnlColor(0, false);
 
       els.avgCurrentValue.textContent = money(currentValue);
       els.avgNewBuyValue.textContent = money(addedValue);
@@ -1355,6 +1439,14 @@
     });
 
     els.sameSellPrice.addEventListener('change', () => calculateCharges(true));
+
+    els.useTargetSellBtn.addEventListener('click', () => {
+      const price = Number(els.targetSellPrice.value) || 0;
+      if (price > 0) {
+        els.sellPrice.value = price.toFixed(2);
+        calculateCharges(true);
+      }
+    });
 
     [els.currentQty, els.currentAvg, els.targetAverage].forEach(input => {
       input.addEventListener('input', () => calculateAverage(true));

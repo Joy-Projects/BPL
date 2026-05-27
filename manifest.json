@@ -1,7 +1,7 @@
 {
   "name": "BPL",
   "short_name": "BPL",
-  "description": "Quick P&L, side-wise buy/sell charges, average calculator, target amount or percentage, and trading reminders.",
+  "description": "Brokerage, Profit and Loss calculator with side-wise charges and average planner.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f7f5ff",
