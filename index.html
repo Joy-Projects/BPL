@@ -1420,20 +1420,155 @@
       saveState();
     }
 
+    function drawRoundedRect(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+    }
+
+    function createShareCanvas() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1080;
+      const ctx = canvas.getContext('2d');
+
+      const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      bg.addColorStop(0, '#21183d');
+      bg.addColorStop(0.55, '#6d28d9');
+      bg.addColorStop(1, '#db2777');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.10)';
+      for (let i = 0; i < 8; i++) {
+        ctx.beginPath();
+        ctx.arc(150 + i * 130, 140 + (i % 3) * 80, 38, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      drawRoundedRect(ctx, 70, 70, 940, 940, 48);
+      ctx.fillStyle = 'rgba(255,255,255,0.94)';
+      ctx.fill();
+
+      ctx.fillStyle = '#21183d';
+      ctx.font = '900 76px Arial';
+      ctx.fillText('BPL', 120, 165);
+
+      ctx.fillStyle = '#667085';
+      ctx.font = '700 32px Arial';
+      ctx.fillText('Brokerage, Profit & Loss', 120, 215);
+
+      const rows = state.mode === 'charges'
+        ? [
+            ['Amount Required', els.mainValue.textContent],
+            ['Stock Value', els.leftValue.textContent],
+            [els.rightLabel.textContent, els.rightValue.textContent],
+            ['Break-even Sell', els.breakEvenPrice.textContent],
+            ['Brokerage', els.brokerage.textContent],
+            ['Other Charges/Taxes', els.otherCharges.textContent]
+          ]
+        : [
+            ['New Average Price', els.mainValue.textContent],
+            ['Total Quantity', els.leftValue.textContent],
+            ['Total Amount', els.rightValue.textContent],
+            ['Qty Needed', els.targetQtyNeeded.textContent],
+            ['Amount Needed', els.targetAmountNeeded.textContent],
+            ['Status', els.targetAvgStatus.textContent]
+          ];
+
+      let y = 300;
+      rows.forEach((row, index) => {
+        drawRoundedRect(ctx, 120, y, 840, 96, 24);
+        ctx.fillStyle = index % 2 === 0 ? '#f4efff' : '#ffffff';
+        ctx.fill();
+
+        ctx.fillStyle = '#667085';
+        ctx.font = '800 28px Arial';
+        ctx.fillText(row[0], 150, y + 38);
+
+        let valueColor = '#21183d';
+        if (row[0].toLowerCase().includes('p&l') || row[0].toLowerCase().includes('profit')) {
+          valueColor = String(row[1]).includes('-') ? '#c62828' : '#079455';
+        }
+        ctx.fillStyle = valueColor;
+        ctx.font = '900 34px Arial';
+        ctx.textAlign = 'right';
+        ctx.fillText(row[1], 930, y + 58);
+        ctx.textAlign = 'left';
+
+        y += 112;
+      });
+
+      ctx.fillStyle = '#6d28d9';
+      ctx.font = '900 30px Arial';
+      ctx.fillText('Trading Reminder', 120, 960);
+
+      ctx.fillStyle = '#21183d';
+      ctx.font = '800 28px Arial';
+      const reminder = els.quoteText ? els.quoteText.textContent : 'No trade is also a position.';
+      const maxWidth = 820;
+      const words = reminder.split(' ');
+      let line = '';
+      let lineY = 1000;
+      words.forEach((word) => {
+        const testLine = line + word + ' ';
+        if (ctx.measureText(testLine).width > maxWidth && line) {
+          ctx.fillText(line.trim(), 120, lineY);
+          line = word + ' ';
+          lineY += 34;
+        } else {
+          line = testLine;
+        }
+      });
+      ctx.fillText(line.trim(), 120, lineY);
+
+      return canvas;
+    }
+
     async function shareResult() {
       const text = state.mode === 'charges'
         ? `BPL\nAmount Required: ${els.mainValue.textContent}\n${els.leftLabel.textContent}: ${els.leftValue.textContent}\n${els.rightLabel.textContent}: ${els.rightValue.textContent}\nBreak-even: ${els.breakEvenPrice.textContent}`
         : `BPL\nNew Average: ${els.mainValue.textContent}\nTotal Qty: ${els.leftValue.textContent}\nTotal Amount: ${els.rightValue.textContent}\nQty Needed: ${els.targetQtyNeeded.textContent}`;
 
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: 'BPL', text });
-          return;
-        } catch (error) {}
-      }
+      try {
+        const canvas = createShareCanvas();
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png', 0.95));
+        const file = new File([blob], 'bpl-result.png', { type: 'image/png' });
 
-      await navigator.clipboard.writeText(text);
-      alert('Result copied. You can paste it anywhere.');
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'BPL Result',
+            text: 'BPL calculation result',
+            files: [file]
+          });
+          return;
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'bpl-result.png';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        alert('Screenshot image downloaded. You can share it from your gallery/files.');
+      } catch (error) {
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: 'BPL Result', text });
+            return;
+          } catch (shareError) {}
+        }
+
+        await navigator.clipboard.writeText(text);
+        alert('Image sharing is not supported here. Result text copied instead.');
+      }
     }
 
     function toggleTheme() {
